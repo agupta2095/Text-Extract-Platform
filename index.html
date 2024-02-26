@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text Extract Platform</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <style>
+         body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #f4ede4; /* Your page's background color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* Stack flex items vertically */
+        }
+        .header {
+            background-color:  #d9ae89;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 0; /* Remove default margin */
+            width: 200%;
+            box-sizing: border-box;
+        }
+        .img-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 90%;
+        }
+        .button-container {
+            position: absolute;
+            bottom: 25%; /* Distance from the bottom of the img-container */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .btn {
+            padding: 10px 20px; /* Adjust padding as necessary */
+            margin: 5px; /* Space between buttons */
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        .content-container {
+            position: relative;
+            top:5%;
+            width: 100%;
+            height: 100%; /* Full viewport height or adjust as necessary */
+        }
+        .btn-primary { background-color: #3b5998; }
+        .btn-danger { background-color: #dc3545; }
+        .form-container {
+            display: none; /* Hidden by default */
+            position: absolute; /* Position absolutely within the content-container */
+            top: 50%; /* Center vertically */
+            left: 50%; /* Center horizontally */
+            transform: translate(-50%, -50%); /* Adjust to precisely center the element */
+            width: 100%; /* Or whatever width you prefer */
+            max-width: 600px; /* Or whatever max-width you prefer */
+            padding: 20px; /* Padding for aesthetic spacing */
+            align-items: center;   
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1); /* Optional: Box shadow for styling */
+            border-radius: 8px; /* Optional: Rounded corners for styling */
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: calc(100% - 20px); /* Full width minus padding */
+            padding: 10px;
+            margin-bottom: 10px; /* Adds some space below each input */
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            display: block;
+        }
+        .file-operations {
+            display: none;
+            position: absolute; /* Position absolutely within the content-container */
+            top: 40%; /* Center vertically */
+            left: 50%; /* Center horizontally */
+            transform: translate(-50%, -50%); /* Adjust to precisely center the element */
+            width: 100%; /* Or whatever width you prefer */
+            max-width: 600px; /* Or whatever max-width you prefer */
+            padding: 20px; /* Padding for aesthetic spacing */
+                    
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1); /* Optional: Box shadow for styling */
+            border-radius: 8px; /* Optional: Rounded corners for styling */
+        }
+        #logoutButton {
+            position: absolute;
+            top: 80px;
+            right:570px;    
+        }
+        #viewUploaded {
+            position: absolute;
+            top: 80px;
+            right:670px;
+        }
+        #uploadsContainer {
+            position: absolute; /* Position absolutely within the content-container */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* Stack flex items vertically */
+            width: 200%; /* Or whatever width you prefer */
+            max-width: 900px; /* Or whatever max-width you prefer */
+            padding: 20px; /* Padding for aesthetic spacing */
+            top: 10%;  
+            right: 0.5%; /* Start at the middle of the page */
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1); /* Optional: Box shadow for styling */
+            border-radius: 8px; /* Optional: Rounded corners for styling */
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aws-sdk/2.1030.0/aws-sdk.min.js"></script>
+    <script src="https://ccproject-spa.s3.amazonaws.com/amazon-cognito-identity.min.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Text Extract Platform</h1>
+    </div>
+    <button class="btn btn-primary" id="logoutButton" onclick="logout()" style="display:none;">Logout</button>
+    <button class="btn btn-primary" id="viewUploaded" onclick="viewUploaded()" style="display:none;">View Uploaded Images</button>
+    
+
+     <div class="content-container">
+        <div id="uploadContainer" style="display:none;">
+            <div id="uploadsContainer" style="display:none;"></div>
+            <button class="btn btn-primary" id="backButton2" onclick="back()" style="display:none;">Go Back To Upload</button>
+        </div>
+
+         <div class="img-container">
+            <img src="https://d2kbvjszk9d5ln.cloudfront.net/yshop/upload/pic/copy-text-from-images-20230803064150649.png" alt="Centered Image" style="display:block;" id ="homePageImg">
+            <div class="button-container" id="toggleButtons">
+                <button class="btn btn-primary" onclick="showSignUp()">Sign Up</button>
+                <button class="btn btn-danger" onclick="showLogIn()">Log In</button>
+            </div>
+        </div>
+    
+
+        <!-- Sign Up Form -->
+        <div id="signupForm" style="display:none;" class="form-container">
+            <input type="text" id="nameInput" placeholder="Full Name"> <br> <br>
+            <input type="email" id="emailSignupInput" placeholder="Email Address"><br> <br>
+            <input type="password" id="passwordSignupInput" placeholder="Password"><br> <br>
+            <button class="btn btn-primary" id="signupButton" onclick="signUp()">Sign Up</button>
+        </div>
+
+        <!-- Log In Form -->
+        <div id="loginForm" style="display:none;" class="form-container">
+            <input type="email" id="emailLoginInput" placeholder="Email Address"><br> <br>
+            <input type="password" id="passwordLoginInput" placeholder="Password"><br> <br>
+            <button class="btn btn-primary" id="loginButton" onclick="logIn()">Log In</button>
+        </div>
+            <!-- Email Verification Form -->
+        <div id="verificationForm" style="display:none;" class="form-container">
+            <input type="text" id="verificationCodeInput" placeholder="Verification Code">
+            <button class="btn btn-primary" onclick="verifyCode()">Verify</button>
+        </div>
+
+        <div style="display:none;" id="uploadSection" class="file-operations">
+            <button id="uploadButton" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Upload to Extract Text</button>
+            <input type="file" id="fileInput" style="display: none;" /> <br>
+            <img id = "uploadedImg" src="" alt="Centered" width="280" height="200" style="display:none;"> <br> <br>
+            <p id="extractedText" style="display:none;">Extracted text will appear here...</p>
+            <button class="btn btn-primary" id="backButton" onclick="back()" style="display:none;">Back</button>
+        </div>
+
+    </div>
+    
+
+
+    <script>
+        // Function to show Sign Up form
+        function showSignUp() {
+            document.getElementById('signupForm').style.display = 'block';
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('toggleButtons').style.display='none';
+            document.getElementById('homePageImg').style.display='none';
+        }
+
+        // Function to show Log In form
+        function showLogIn() {
+            document.getElementById('signupForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('toggleButtons').style.display='none';
+            document.getElementById('homePageImg').style.display='none';
+        }
+
+
+        // Sign Up Function
+        function signUp() {
+            const email = document.getElementById('emailSignupInput').value;
+            const password = document.getElementById('passwordSignupInput').value;
+            const name = document.getElementById('nameInput').value;
+
+            // Prepare the data to be sent in the request
+            const requestData = {
+                email: email,
+                password: password,
+                name: name
+            };
+
+            // API Gateway endpoint
+            const endpoint = 'https://8qcbbyy5s9.execute-api.us-east-1.amazonaws.com/dev/authenticateUser';
+            
+            // Make an HTTP POST request to the Lambda function
+            fetch(endpoint + '?auth=register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('User registration successful:');
+                
+                // Handle successful registration
+                localStorage.setItem('username', email); // Store the username in local storage
+                localStorage.setItem('password', password);
+                document.getElementById('signupForm').style.display = 'none';
+                document.getElementById('verificationForm').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error during registration:', error);
+                alert('Registration error: ' + error.message);
+            });
+        }
+
+        function logIn() {
+            const email = document.getElementById('emailLoginInput').value;
+            const password = document.getElementById('passwordLoginInput').value;
+
+            // API Gateway endpoint
+            const endpoint = 'https://8qcbbyy5s9.execute-api.us-east-1.amazonaws.com/dev/authenticateUser?auth=login';
+
+            // Prepare the data to be sent in the request
+            const requestData = {
+                email: email,
+                password: password
+            };
+
+            // Make an HTTP POST request to the Lambda function
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Login successful:');
+                
+                // Handle successful login
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', email);
+                    // Update UI accordingly
+                    document.getElementById('uploadSection').style.display = 'block';
+                    document.getElementById('logoutButton').style.display = 'block';
+                    document.getElementById('viewUploaded').style.display = 'block';
+                    document.getElementById('signupForm').style.display = 'none';
+                    document.getElementById('loginForm').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error during login:', error);
+                alert('Login error: ' + error.message);
+            });
+        }
+
+
+        function logout() {  
+            localStorage.removeItem('username'); // Clear user data from local storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('fileKey');
+            console.log("User logged out successfully.");
+
+            // Hide upload and logout buttons after signing out
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('logoutButton').style.display = 'none';
+            document.getElementById('toggleButtons').style.display='block';
+            document.getElementById('homePageImg').style.display='block';
+            document.getElementById('backButton').style.display='none';
+            document.getElementById('viewUploaded').style.display='none';
+            document.getElementById('uploadContainer').style.display='none';
+            document.getElementById('extractedText').textContent = 'Extracted text will appear here...';          
+        }
+ 
+        function verifyCode() {
+            const userCode = document.getElementById('verificationCodeInput').value;
+            const email = localStorage.getItem('username'); // Assuming the username is the email
+            
+            // API Gateway endpoint
+            const endpoint = 'https://8qcbbyy5s9.execute-api.us-east-1.amazonaws.com/dev/authenticateUser?auth=verifyCode';
+
+
+            // Prepare the data to be sent in the request
+            const requestData = {
+                username: email,
+                code: userCode,
+                password: localStorage.getItem('password')
+            };
+
+            // Make an HTTP POST request to the Lambda function
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();})
+            .then(data => {
+                    console.log('User verification successful:');
+                    // User verified
+                    localStorage.removeItem('password');
+                    localStorage.setItem('token', data.token);
+                    document.getElementById('uploadSection').style.display = 'block';
+                    document.getElementById('verificationForm').style.display = 'none';
+                    document.getElementById('extractedText').style.display = 'none'; 
+                    document.getElementById('uploadedImg').style.display = 'none';
+                    document.getElementById('backButton').style.display = 'none';
+                    document.getElementById('uploadButton').style.display = 'block'; 
+                    document.getElementById('logoutButton').style.display = 'block';
+                    document.getElementById('viewUploaded').style.display = 'block';
+                    document.getElementById('signupForm').style.display='none';
+                    document.getElementById('loginForm').style.display='none';
+                    document.getElementById('extractedText').textContent = 'Extracted text will appear here...';
+                    // Optionally, automatically log the user in or show the login form
+            })
+            .catch(error => {
+                console.error('Error during verification:', error);
+                alert('Verification error: ' + error.message);
+            });
+        }
+        
+
+        async function viewUploaded() {
+            document.getElementById('uploadSection').style.display='none';
+            document.getElementById('uploadContainer').style.display='block';
+            document.getElementById('uploadsContainer').style.display='block';
+            document.getElementById('backButton2').style.display='block';
+                
+            //document.getElementById('backButton').style.display='none';
+            //document.getElementById('extractedText').style.display='none';
+            //document.getElementById('uploadButton').style.display='none';
+
+            const apiGatewayUrl = 'https://rri0szbgy2.execute-api.us-east-1.amazonaws.com/dev/viewFiles';
+            const username = localStorage.getItem('username');
+            const queryParams = `?username=${username}`;
+            try {
+                const response = await fetch(apiGatewayUrl+queryParams,{
+                    method: 'GET',
+                    headers: {
+                        'Authorization' : `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const responseData = await response.json();
+                // Assuming you have a div with id="uploadsContainer" in your HTML to display the uploads
+                const uploadsContainer = document.getElementById('uploadsContainer');
+                uploadsContainer.innerHTML = ''; // Clear previous content
+                
+
+                // Iterate over each item in the response and create HTML elements
+                responseData.forEach(item => {
+                    // Create an image element
+                    const img = document.createElement('img');
+                    img.src = item.URL;
+                    img.alt = 'Uploaded Image';
+                    img.height=250;
+                    img.width=380;
+
+                    // Create a paragraph for text
+                    const text = document.createElement('p');
+                    text.textContent = item.extractedText;
+
+                    // Create a delete icon
+                    const deleteIcon = document.createElement('button');
+                    deleteIcon.className = 'btn btn-danger'; // Add relevant class for styling
+                    deleteIcon.textContent = 'Delete File'; 
+                    deleteIcon.style.float = 'right';
+                    deleteIcon.onclick = () => deleteImg(item.fileKey);
+
+                    // Append to the container
+                    uploadsContainer.appendChild(img);
+                    uploadsContainer.appendChild(deleteIcon);
+                    uploadsContainer.appendChild(text);
+                    
+                });
+                
+            } catch (error) {
+                 console.error('Error fetching uploaded files:', error);
+            }    
+        }
+        
+        async function deleteImg(fileKey) {
+            const apiGatewayUrl = 'https://rri0szbgy2.execute-api.us-east-1.amazonaws.com/dev/deleteFile';
+            const username = localStorage.getItem('username');
+            const queryParams = `?fileKey=${encodeURIComponent(fileKey)}&username=${encodeURIComponent(username)}`;
+            try {
+                const response = await fetch(apiGatewayUrl + queryParams, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization' : `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text(); // Or response.json() if the server sends a JSON response
+                    console.error('Error deleting file:', errorText);
+                    // Update the UI to show an error message
+                } else {
+                    console.log("File deleted successfully");
+                    // Update the UI to reflect that the file was deleted
+                }
+            } catch (error) {
+                console.error('Network or other error:', error);
+                // Update the UI to show an error message
+            }
+        }
+
+
+        function back() {
+            document.getElementById('uploadSection').style.display='block';
+            document.getElementById('uploadButton').style.display='block';
+            document.getElementById('extractedText').style.display='none';
+            document.getElementById('uploadedImg').style.display='none';
+            document.getElementById('backButton').style.display='none';
+            document.getElementById('uploadContainer').style.display='none';
+            document.getElementById('extractedText').textContent = 'Extracted text will appear here...';
+        }
+    
+        document.getElementById('fileInput').addEventListener('change', async function(event) {
+            document.getElementById('uploadButton').style.display='none';
+            document.getElementById('extractedText').style.display='block';
+            const file = event.target.files[0];
+            const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg'];
+
+            // Check if the selected file is of the allowed types
+            if (!allowedTypes.includes(file.type)) {
+                alert('Please upload a file of type .pdf, .png, or .jpeg.');
+                return; // Exit the function if the file type is not allowed
+            }
+            console.log(`File Type: ${file.type}`);
+            let file2 = file;
+            var reader = new FileReader();
+            reader.onloadend = function () {
+                var uploadedImg = document.getElementById('uploadedImg');
+                uploadedImg.src = reader.result;
+                uploadedImg.style.display = 'block';
+            }
+            reader.readAsDataURL(file2);
+            document.getElementById('backButton').style.display = 'block';
+
+            // Make sure to replace with your actual API Gateway endpoint
+            const apiGatewayUrl = 'https://rri0szbgy2.execute-api.us-east-1.amazonaws.com/dev/upload';
+            const dbApiGateway = ' https://rri0szbgy2.execute-api.us-east-1.amazonaws.com/dev/dbconnect';
+
+
+
+            // First, get the pre-signed URL from your API
+            try {
+
+                const extractTextUrl = "https://rri0szbgy2.execute-api.us-east-1.amazonaws.com/dev/translate";
+                const response3 = await fetch(extractTextUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization' : `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: file
+                });
+                
+                let extractedText ="";
+                if (!response3.ok) {
+                    throw new Error('Could not extractText.');
+                } else {
+                    const responseData = await response3.json(); // Parsing the response as JSON
+                    extractedText = responseData.extracted_text; // Accessing the extracted_text field
+                    console.log(`extractedText: ${extractedText}`);
+                    var textElement = document.getElementById('extractedText');
+                    textElement.textContent = extractedText;
+                }
+
+                const response = await fetch(apiGatewayUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization' : `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: file
+                });
+
+                
+                if (!response.ok) {
+                    throw new Error('Could not upload file.');
+                } else {
+                    console.log('File uploaded successfully.');
+                     // Read the response body as text
+                    const responseBodyAsText = await response.text();
+
+                    // responseBodyAsText now contains the content of the ReadableStream as text
+                    // If this text is just the fileKey, use it directly
+                    const fileKey = responseBodyAsText;
+                    // Now use fileKey for further processing
+                    
+                    localStorage.setItem('fileKey', fileKey);
+                    const username = localStorage.getItem('username');
+                    const queryParams = `?fileKey=${encodeURIComponent(fileKey)}&username=${encodeURIComponent(username)}&extractedText=${encodeURIComponent(extractedText)}`;
+                    try {
+                        const response2 = await fetch(dbApiGateway+queryParams, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization' : `Bearer ${localStorage.getItem('token')}`
+                            }
+
+                        });
+                        
+
+                        if (!response2.ok) {
+                            throw new Error('Could not add the database entry');
+
+                        } else {
+
+                            console.log('The file path entry successfully added in the database');
+                        }
+                    } catch {
+                        console.error('Error: ', error);
+                    }
+                    
+                    
+         
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
